@@ -38,28 +38,29 @@ function create() {
     // Create player sprite
 
     socket.on("updatePlayers", (players) => {
+        console.log("Received players data:", players);
+        
         Object.keys(players).forEach((id) => {
-            if (id !== socket.id) { // Don't render yourself
+            if (id !== socket.id) {
                 if (!otherPlayers[id]) {
+                    console.log(`🎮 Creating sprite for: ${id} at (${players[id].x}, ${players[id].y})`); // ✅ Debugging
+    
                     otherPlayers[id] = this.physics.add.sprite(players[id].x, players[id].y, players[id].sprite);
-
                     otherPlayers[id].setCollideWorldBounds(true);
                 } else {
-                    // Update position
+                    console.log(`↔ Updating position for: ${id} at (${players[id].x}, ${players[id].y})`); // ✅ Debugging
+                    
                     otherPlayers[id].x = players[id].x;
                     otherPlayers[id].y = players[id].y;
-    
-                    // ✅ Play animation if provided
-                    if (players[id].anim) {
-                        otherPlayers[id].anims.play(players[id].anim, true);
-                    }
                 }
             }
         });
+    
         // Remove disconnected players
         Object.keys(otherPlayers).forEach((id) => {
             if (!players[id]) {
-                otherPlayers[id].destroy(); // Remove sprite
+                console.log(`Removing sprite for: ${id}`); // ✅ DEBUGGING
+                otherPlayers[id].destroy();
                 delete otherPlayers[id];
             }
         });
@@ -185,13 +186,14 @@ function update() {
     else {
         player.anims.stop();
         
-
+    }
     // ✅ Emit movement **only if player actually moved**
     if (moved) {
         movementData.x = player.x;
         movementData.y = player.y;
+        console.log("🚀 Emitting movement data:", movementData); // ✅ Debugging
         socket.emit("playerMove", movementData);
         }
-    }
+    
 
 }
