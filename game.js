@@ -65,8 +65,10 @@ function create() {
         });
     });
     
-
-    player = this.physics.add.sprite(400, 300, 'player');
+    const spriteList = ["player_01", "player_02", "player_03"];
+    const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
+    
+    player = this.physics.add.sprite(400, 300, randomSprite);
     player.setCollideWorldBounds(true); // Optional: Prevent player from going out of the world bounds
     player.body.setSize(20, 50);
     player.body.setOffset(20, 17);
@@ -121,28 +123,28 @@ function create() {
     // Create animations
     this.anims.create({
         key: 'walk_up',
-        frames: this.anims.generateFrameNumbers('player', { start: 0, end: 8 }),
+        frames: this.anims.generateFrameNumbers(randomSprite, { start: 0, end: 8 }),
         frameRate: 10,
         repeat: -1
     });
 
     this.anims.create({
         key: 'walk_down',
-        frames: this.anims.generateFrameNumbers('player', { start: 18, end: 26 }),
+        frames: this.anims.generateFrameNumbers(randomSprite, { start: 18, end: 26 }),
         frameRate: 10,
         repeat: -1
     });
 
     this.anims.create({
         key: 'walk_left',
-        frames: this.anims.generateFrameNumbers('player', { start: 9, end: 17 }),
+        frames: this.anims.generateFrameNumbers(randomSprite, { start: 9, end: 17 }),
         frameRate: 10,
         repeat: -1
     });
 
     this.anims.create({
         key: 'walk_right',
-        frames: this.anims.generateFrameNumbers('player', { start: 28, end: 35 }),
+        frames: this.anims.generateFrameNumbers(randomSprite, { start: 28, end: 35 }),
         frameRate: 10,
         repeat: -1
     });
