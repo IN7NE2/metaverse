@@ -19,13 +19,12 @@ io.on('connection', (socket) => {
     io.emit('updatePlayers', players); // Send all players data to everyone
 
     // When a player moves
-    socket.on('playerMove', (data) => {
+    socket.on("playerMove", (data) => {
         if (players[socket.id]) {
-            players[socket.id] = data;
-            io.emit('updatePlayers', players); // Broadcast movement
+            players[socket.id] = { x: data.x, y: data.y, anim: data.anim };
+            io.emit('updatePlayers', players); // Broadcast movement + animation
         }
     });
-
     // When a player disconnects
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);

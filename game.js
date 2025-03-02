@@ -1,3 +1,10 @@
+const socket = io(); // Server से connection बनाएगा
+
+socket.on("connect", () => {
+    console.log("Connected to server!", socket.id);
+})
+
+
 const config = {
     type: Phaser.AUTO,
     width: 800,
@@ -32,17 +39,20 @@ function create() {
         Object.keys(players).forEach((id) => {
             if (id !== socket.id) { // Don't render yourself
                 if (!otherPlayers[id]) {
-                    // Create a new sprite for the new player
                     otherPlayers[id] = this.physics.add.sprite(players[id].x, players[id].y, "player");
                     otherPlayers[id].setCollideWorldBounds(true);
                 } else {
-                    // Update existing player position
+                    // Update position
                     otherPlayers[id].x = players[id].x;
                     otherPlayers[id].y = players[id].y;
+    
+                    // ✅ Play animation if provided
+                    if (players[id].anim) {
+                        otherPlayers[id].anims.play(players[id].anim, true);
+                    }
                 }
             }
         });
-    
         // Remove disconnected players
         Object.keys(otherPlayers).forEach((id) => {
             if (!players[id]) {
@@ -135,38 +145,7 @@ function create() {
     });
 }
 
-// function update() {
-//     player.setVelocity(0);
-//     if (cursors.left.isDown || cursors.right.isDown || cursors.up.isDown || cursors.down.isDown) {
-//         socket.emit("playerMove", { x: player.x, y: player.y });
-//     }
 
-//     if (cursors.left.isDown) {
-//         player.setVelocityX(-200);
-//         player.anims.play('walk_left', true);
-//     } 
-//     // if (cursors.left.isDown && cursors.up.isDown) {
-//     //     player.setVelocityX(-200 * Math.SQRT1_2);
-//     //     player.setVelocityY(-200 * Math.SQRT1_2);
-//     //     player.anims.play('walk_left', true); // Or create a diagonal animation
-//     // }
-//     else if (cursors.right.isDown) {
-//         player.setVelocityX(200);
-//         player.anims.play('walk_right', true);
-//     } 
-//     else if (cursors.up.isDown) {
-//         player.setVelocityY(-200);
-//         player.anims.play('walk_up', true);
-//     } 
-//     else if (cursors.down.isDown) {
-//         player.setVelocityY(200);
-//         player.anims.play('walk_down', true);
-//     } 
-
-//     else {
-//         player.anims.stop(); // Stop animation when idle
-//     }
-// }
 
 function update() {
     let moved = false;
@@ -211,8 +190,3 @@ function update() {
     }
 
 }
-const socket = io(); // Server से connection बनाएगा
-
-socket.on("connect", () => {
-    console.log("Connected to server!", socket.id);
-})
