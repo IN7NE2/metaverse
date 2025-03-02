@@ -12,6 +12,12 @@ app.use(express.static(__dirname)); // Serve static files that means where you c
 //its root so we write here _dirname ok 
 
 io.on('connection', (socket) => {
+const spriteList = ["player_01", "player_02", "player_03"];
+const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
+
+const spawnPoint = { x: 400, y: 300 };
+
+players[socket.id] = { x: spawnPoint.x, y: spawnPoint.y, sprite: randomSprite };
     console.log(`Player connected: ${socket.id}`);
 
     // When a new player joins

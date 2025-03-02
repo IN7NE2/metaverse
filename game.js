@@ -24,10 +24,12 @@ let cursors;
 const game = new Phaser.Game(config);
 
 function preload() {
-    this.load.spritesheet('player', 'assets/walk.png', {
-        frameWidth: 64,
-        frameHeight: 64
-    });
+    this.load.spritesheet('player_01', 'assets/player_01.png', 
+        { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('player_02', 'assets/player_02.png',
+     { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('player_03', 'assets/player_03.png', 
+    { frameWidth: 64, frameHeight: 64 });
 
     this.load.image('tree', 'assets/tree_02.png');
 }
@@ -39,7 +41,8 @@ function create() {
         Object.keys(players).forEach((id) => {
             if (id !== socket.id) { // Don't render yourself
                 if (!otherPlayers[id]) {
-                    otherPlayers[id] = this.physics.add.sprite(players[id].x, players[id].y, "player");
+                    otherPlayers[id] = this.physics.add.sprite(players[id].x, players[id].y, players[id].sprite);
+
                     otherPlayers[id].setCollideWorldBounds(true);
                 } else {
                     // Update position
