@@ -8,45 +8,46 @@ const io = new Server(server);
 
 const players = {}; // Store player data
 
-app.use(express.static(__dirname)); // Serve static files that means where you create html and game.js file 
-//its root so we write here _dirname ok 
+app.use(express.static(__dirname)); // Serve static files
 
 io.on('connection', (socket) => {
-const spriteList = ["player_01", "player_02", "player_03"];
-const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
+    const spriteList = ["player_01", "player_02", "player_03"];
+    const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
 
+    players[socket.id] = { x: 400, y: 300, sprite: randomSprite }; // ✅ Keep sprite!
 
-const spawnPoint = { x: 400, y: 300 };
-
-players[socket.id] = { x: spawnPoint.x, y: spawnPoint.y, sprite: randomSprite };
     console.log(`Player connected: ${socket.id}`);
-
-    // When a new player joins
-    players[socket.id] = { x: 400, y: 300 }; // Default position
-    io.emit('updatePlayers', players); // Send all players data to everyone
-    console.log("broadcasting palyers:",players)
-    // When a player moves
-    socket.on("playerMove", (data) => {
-        console.log(`Received movement from ${socket.id}:`, data); // ✅ Debugging
     
+    // Send existing players to the new player
+    socket.emit("updatePlayers", players);
+    
+    // Notify all players about the new player
+    io.emit('updatePlayers', players); 
+    console.log("Broadcasting players:", players);
+
+    // Handle movement
+    socket.on("playerMove", (data) => {
         if (players[socket.id]) {
             players[socket.id] = { 
-                x: data.x,
+                x: data.x, 
                 y: data.y, 
-                anim: data.anim,
-                sprite: players[socket.id].sprite };
-            
-            console.log(`Updated player data:`, players[socket.id]); // ✅ Debugging
-    
-            io.emit('updatePlayers', players); // Broadcast movement + animation
-            console.log("Broadcasting players:", players); // ✅ Debugging
+                anim: data.anim, 
+                sprite: players[socket.id].sprite // Keep the assigned sprite
+            };
+            io.emit('updatePlayers', players);
         }
     });
-    // When a player disconnects
+
+    // Send all players to a new player upon request
+    socket.on("requestPlayers", () => {
+        socket.emit("updatePlayers", players);
+    });
+
+    // Handle player disconnection
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);
         delete players[socket.id];
-        io.emit('updatePlayers', players); // Update remaining players
+        io.emit('updatePlayers', players);
     });
 });
 
