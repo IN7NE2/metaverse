@@ -11,7 +11,7 @@ const config = {
     height: 600,
     physics: { 
         default: "arcade",
-        arcade: { debug: true } 
+        
     },
     scene: { preload, create, update }
 };
@@ -47,6 +47,9 @@ function create() {
                     otherPlayers[id].setTexture(players[id].sprite); // ✅ Ensure correct sprite!
                     otherPlayers[id].x = players[id].x;
                     otherPlayers[id].y = players[id].y;
+                }
+                if (players[id].anim) {
+                    otherPlayers[id].anims.play(players[id].anim, true);
                 }
             }
         });
