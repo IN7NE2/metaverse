@@ -14,7 +14,7 @@ io.on('connection', (socket) => {
     const spriteList = ["player_01", "player_02", "player_03"];
     const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
 
-    players[socket.id] = { x: 400, y: 300, sprite: randomSprite }; // ✅ Keep sprite!
+    players[socket.id] = { x: 400, y: 300, anim: "idle", sprite: randomSprite };
 
     console.log(`Player connected: ${socket.id}`);
     
@@ -32,8 +32,9 @@ io.on('connection', (socket) => {
                 x: data.x, 
                 y: data.y, 
                 anim: data.anim, 
-                sprite: players[socket.id].sprite // Keep the assigned sprite
+                sprite: players[socket.id].sprite
             };
+            console.log(data);
             io.emit('updatePlayers', players);
         }
     });

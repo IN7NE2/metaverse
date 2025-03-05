@@ -11,7 +11,6 @@ const config = {
     height: 600,
     physics: { 
         default: "arcade",
-        
     },
     scene: { preload, create, update }
 };
@@ -29,32 +28,35 @@ function preload() {
 }
 
 function create() {
-    // Random player sprite
     const spriteList = ["player_01", "player_02", "player_03"];
     const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
 
-    // Handle player updates from the server
     socket.on("updatePlayers", (players) => {
         Object.keys(players).forEach((id) => {
             if (id !== socket.id) {
                 if (!otherPlayers[id]) {
-                    // Create a sprite for the new player
                     otherPlayers[id] = this.physics.add.sprite(players[id].x, players[id].y, players[id].sprite);
                     otherPlayers[id].setCollideWorldBounds(true);
                     console.log(`🎮 Created sprite for player ${id} with sprite: ${players[id].sprite}`);
                 } else {
-                    // Update the position and sprite of existing players
-                    otherPlayers[id].setTexture(players[id].sprite); // ✅ Ensure correct sprite!
+                    console.log(`🔍 Player ${id} existing sprite: ${otherPlayers[id].texture.key}, received: ${players[id].sprite}`);
+                    if (players[id].sprite !== otherPlayers[id].texture.key) {
+                        console.log(`⚠️ Sprite change detected for player ${id}! Updating sprite.`);
+                        otherPlayers[id].setTexture(players[id].sprite);
+                    }
                     otherPlayers[id].x = players[id].x;
                     otherPlayers[id].y = players[id].y;
                 }
                 if (players[id].anim) {
-                    otherPlayers[id].anims.play(players[id].anim, true);
+                    if (otherPlayers[id].anims.currentAnim && otherPlayers[id].anims.currentAnim.key !== players[id].anim) {
+                        otherPlayers[id].anims.play(players[id].anim, true);
+                    }
+                } else {
+                    otherPlayers[id].anims.stop();
                 }
             }
         });
 
-        // Remove disconnected players
         Object.keys(otherPlayers).forEach((id) => {
             if (!players[id]) {
                 console.log(`Removing sprite for player: ${id}`);
@@ -64,23 +66,18 @@ function create() {
         });
     });
 
-    // Create player sprite
     player = this.physics.add.sprite(400, 300, randomSprite);
     player.setCollideWorldBounds(true);
     player.body.setSize(20, 50);
     player.body.setOffset(20, 17);
 
-    // Create tree (static object)
     let tree = this.physics.add.staticImage(200, 200, 'tree');
     tree.setScale(0.06);
-
-    // Collision box for tree
     let collisionBox = this.add.rectangle(200, 280, 45, 25, 0xff0000, 0);
     this.physics.add.existing(collisionBox);
     collisionBox.body.setImmovable(true);
     this.physics.add.collider(player, collisionBox);
 
-    // Define keyboard inputs
     cursors = this.input.keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
         down: Phaser.Input.Keyboard.KeyCodes.S,
@@ -88,7 +85,6 @@ function create() {
         right: Phaser.Input.Keyboard.KeyCodes.D
     });
 
-    // Create animations
     this.anims.create({
         key: 'walk_up',
         frames: this.anims.generateFrameNumbers(randomSprite, { start: 0, end: 8 }),
@@ -121,7 +117,6 @@ function create() {
 function update() {
     let moved = false;
     let movementData = { x: player.x, y: player.y, anim: "" };
-
     player.setVelocity(0);
 
     if (cursors.left.isDown) {
@@ -148,7 +143,6 @@ function update() {
         player.anims.stop();
     }
 
-    // Emit movement **only if player actually moved**
     if (moved) {
         movementData.x = player.x;
         movementData.y = player.y;
