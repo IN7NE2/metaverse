@@ -14,24 +14,22 @@ io.on('connection', (socket) => {
     const spriteList = ["player_01", "player_02", "player_03"];
     const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
 
-    players[socket.id] = { x: 400, y: 300, anim: "idle", sprite: randomSprite };
-
+    // Initialize new player
+    players[socket.id] = { x: 400, y: 300, anim: "idle", sprite: randomSprite }; // Animation is included but commented out in updates
     console.log(`Player connected: ${socket.id}`);
-    
-    // Send existing players to the new player
+
+    // Send existing players to the new player and notify all players
     socket.emit("updatePlayers", players);
-    
-    // Notify all players about the new player
-    io.emit('updatePlayers', players); 
+    io.emit('updatePlayers', players);
     console.log("Broadcasting players:", players);
 
-    // Handle movement
+    // Handle player movement
     socket.on("playerMove", (data) => {
         if (players[socket.id]) {
             players[socket.id] = { 
                 x: data.x, 
                 y: data.y, 
-                anim: data.anim, 
+                // anim: data.anim, // Commented out: Animation data is no longer sent
                 sprite: players[socket.id].sprite
             };
             console.log(data);
@@ -39,16 +37,16 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Send all players to a new player upon request
-    socket.on("requestPlayers", () => {
-        socket.emit("updatePlayers", players);
-    });
-
     // Handle player disconnection
     socket.on('disconnect', () => {
         console.log(`Player disconnected: ${socket.id}`);
         delete players[socket.id];
         io.emit('updatePlayers', players);
+    });
+
+    // Send all players to a new player upon request
+    socket.on("requestPlayers", () => {
+        socket.emit("updatePlayers", players);
     });
 });
 

@@ -2,7 +2,7 @@ const socket = io(); // Connect to server
 
 socket.on("connect", () => {
     console.log("Connected to server!", socket.id);
-    socket.emit("requestPlayers"); // ✅ Request existing players
+    socket.emit("requestPlayers"); // Request existing players
 });
 
 const config = {
@@ -31,32 +31,41 @@ function create() {
     const spriteList = ["player_01", "player_02", "player_03"];
     const randomSprite = spriteList[Math.floor(Math.random() * spriteList.length)];
 
+    // Handle player updates from the server
     socket.on("updatePlayers", (players) => {
         Object.keys(players).forEach((id) => {
-            if (id !== socket.id) {
-                if (!otherPlayers[id]) {
-                    otherPlayers[id] = this.physics.add.sprite(players[id].x, players[id].y, players[id].sprite);
-                    otherPlayers[id].setCollideWorldBounds(true);
-                    console.log(`🎮 Created sprite for player ${id} with sprite: ${players[id].sprite}`);
-                } else {
-                    console.log(`🔍 Player ${id} existing sprite: ${otherPlayers[id].texture.key}, received: ${players[id].sprite}`);
-                    if (players[id].sprite !== otherPlayers[id].texture.key) {
-                        console.log(`⚠️ Sprite change detected for player ${id}! Updating sprite.`);
-                        otherPlayers[id].setTexture(players[id].sprite);
-                    }
-                    otherPlayers[id].x = players[id].x;
-                    otherPlayers[id].y = players[id].y;
+            if (id === socket.id) return; // Skip the current player
+
+            const playerData = players[id];
+            let otherPlayer = otherPlayers[id];
+
+            if (!otherPlayer) {
+                // Create a new sprite for the player
+                otherPlayer = otherPlayers[id] = this.physics.add.sprite(playerData.x, playerData.y, playerData.sprite);
+                otherPlayer.setCollideWorldBounds(true);
+                console.log(`🎮 Created sprite for player ${id} with sprite: ${playerData.sprite}`);
+            } else {
+                // Update existing player's sprite and position
+                if (playerData.sprite !== otherPlayer.texture.key) {
+                    console.log(`⚠️ Sprite change detected for player ${id}! Updating sprite.`);
+                    otherPlayer.setTexture(playerData.sprite);
                 }
-                if (players[id].anim) {
-                    if (otherPlayers[id].anims.currentAnim && otherPlayers[id].anims.currentAnim.key !== players[id].anim) {
-                        otherPlayers[id].anims.play(players[id].anim, true);
-                    }
-                } else {
-                    otherPlayers[id].anims.stop();
-                }
+                otherPlayer.setPosition(playerData.x, playerData.y);
             }
+
+            // Commented out: Animation handling for other players
+            /*
+            if (playerData.anim) {
+                if (!otherPlayer.anims.currentAnim || otherPlayer.anims.currentAnim.key !== playerData.anim) {
+                    otherPlayer.anims.play(playerData.anim, true);
+                }
+            } else {
+                otherPlayer.anims.stop();
+            }
+            */
         });
 
+        // Remove disconnected players
         Object.keys(otherPlayers).forEach((id) => {
             if (!players[id]) {
                 console.log(`Removing sprite for player: ${id}`);
@@ -66,11 +75,13 @@ function create() {
         });
     });
 
+    // Create the local player
     player = this.physics.add.sprite(400, 300, randomSprite);
     player.setCollideWorldBounds(true);
     player.body.setSize(20, 50);
     player.body.setOffset(20, 17);
 
+    // Add a tree with collision
     let tree = this.physics.add.staticImage(200, 200, 'tree');
     tree.setScale(0.06);
     let collisionBox = this.add.rectangle(200, 280, 45, 25, 0xff0000, 0);
@@ -78,6 +89,7 @@ function create() {
     collisionBox.body.setImmovable(true);
     this.physics.add.collider(player, collisionBox);
 
+    // Set up keyboard input
     cursors = this.input.keyboard.addKeys({
         up: Phaser.Input.Keyboard.KeyCodes.W,
         down: Phaser.Input.Keyboard.KeyCodes.S,
@@ -85,32 +97,16 @@ function create() {
         right: Phaser.Input.Keyboard.KeyCodes.D
     });
 
-    this.anims.create({
-        key: 'walk_up',
-        frames: this.anims.generateFrameNumbers(randomSprite, { start: 0, end: 8 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    this.anims.create({
-        key: 'walk_down',
-        frames: this.anims.generateFrameNumbers(randomSprite, { start: 18, end: 26 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    this.anims.create({
-        key: 'walk_left',
-        frames: this.anims.generateFrameNumbers(randomSprite, { start: 9, end: 17 }),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    this.anims.create({
-        key: 'walk_right',
-        frames: this.anims.generateFrameNumbers(randomSprite, { start: 28, end: 35 }),
-        frameRate: 10,
-        repeat: -1
+    // Create animations
+    const anims = ['walk_up', 'walk_down', 'walk_left', 'walk_right'];
+    const frames = { walk_up: [0, 8], walk_down: [18, 26], walk_left: [9, 17], walk_right: [28, 35] };
+    anims.forEach(anim => {
+        this.anims.create({
+            key: anim,
+            frames: this.anims.generateFrameNumbers(randomSprite, { start: frames[anim][0], end: frames[anim][1] }),
+            frameRate: 10,
+            repeat: -1
+        });
     });
 }
 
