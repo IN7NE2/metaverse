@@ -29,12 +29,18 @@ io.on('connection', (socket) => {
             players[socket.id] = { 
                 x: data.x, 
                 y: data.y, 
-                // anim: data.anim, // Commented out: Animation data is no longer sent
+              
                 sprite: players[socket.id].sprite
             };
             console.log(data);
             io.emit('updatePlayers', players);
         }
+    });
+
+
+     // Handle chat messages
+     socket.on("chatMessage", (message) => {
+        io.emit("chatMessage", { id: socket.id, message });
     });
 
     // Handle player disconnection

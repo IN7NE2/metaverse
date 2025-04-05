@@ -53,16 +53,7 @@ function create() {
                 otherPlayer.setPosition(playerData.x, playerData.y);
             }
 
-            // Commented out: Animation handling for other players
-            /*
-            if (playerData.anim) {
-                if (!otherPlayer.anims.currentAnim || otherPlayer.anims.currentAnim.key !== playerData.anim) {
-                    otherPlayer.anims.play(playerData.anim, true);
-                }
-            } else {
-                otherPlayer.anims.stop();
-            }
-            */
+           
         });
 
         // Remove disconnected players
@@ -112,28 +103,28 @@ function create() {
 
 function update() {
     let moved = false;
-    let movementData = { x: player.x, y: player.y, anim: "" };
+    let movementData = { x: player.x, y: player.y};
     player.setVelocity(0);
 
     if (cursors.left.isDown) {
         player.setVelocityX(-200);
         player.anims.play('walk_left', true);
-        movementData.anim = 'walk_left';
+        // movementData.anim = 'walk_left';
         moved = true;
     } else if (cursors.right.isDown) {
         player.setVelocityX(200);
         player.anims.play('walk_right', true);
-        movementData.anim = 'walk_right';
+        // movementData.anim = 'walk_right';
         moved = true;
     } else if (cursors.up.isDown) {
         player.setVelocityY(-200);
         player.anims.play('walk_up', true);
-        movementData.anim = 'walk_up';
+        // movementData.anim = 'walk_up';
         moved = true;
     } else if (cursors.down.isDown) {
         player.setVelocityY(200);
         player.anims.play('walk_down', true);
-        movementData.anim = 'walk_down';
+        // movementData.anim = 'walk_down';
         moved = true;
     } else {
         player.anims.stop();
@@ -145,3 +136,21 @@ function update() {
         socket.emit("playerMove", movementData);
     }
 }
+
+//chat system code
+const chatInput = document.getElementById("chat-input");
+const messagesDiv = document.getElementById("messages");
+
+chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && chatInput.value.trim() !== "") {
+        socket.emit("chatMessage", chatInput.value.trim());
+        chatInput.value = "";
+    }
+});
+
+socket.on("chatMessage", (data) => {
+    const messageElement = document.createElement("div");
+    messageElement.textContent = `${data.id.slice(0, 6)}: ${data.message}`;
+    messagesDiv.appendChild(messageElement);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
